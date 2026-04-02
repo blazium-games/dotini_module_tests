@@ -94,9 +94,17 @@ func test_type_casting():
 	ENV.set_env("BOOL_VAR", "true")
 	ENV.set_env("FLOAT_VAR", "45.67")
 	
+	ENV.set_env("FALSE_BOOL_1", "false")
+	ENV.set_env("FALSE_BOOL_2", "no")
+	ENV.set_env("FALSE_BOOL_3", "0")
+	
 	assert_eq(ENV.get_env_int("INT_VAR"), 123)
 	assert_eq(ENV.get_env_bool("BOOL_VAR"), true)
 	assert_almost_eq(ENV.get_env_float("FLOAT_VAR"), 45.67, 0.01)
+	
+	assert_false(ENV.get_env_bool("FALSE_BOOL_1"))
+	assert_false(ENV.get_env_bool("FALSE_BOOL_2"))
+	assert_false(ENV.get_env_bool("FALSE_BOOL_3"))
 
 func test_variable_expansion():
 	var file = FileAccess.open("user://test_expand.env", FileAccess.WRITE)
@@ -110,6 +118,20 @@ func test_variable_expansion():
 	
 	assert_eq(String(ENV.get_env("COMBO")), "10-20")
 	assert_eq(String(ENV.get_env("MISSING")), "")
+
+func test_advanced_interpolation_fallbacks():
+	ENV.clear()
+	var file = FileAccess.open("user://test_fallbacks.env", FileAccess.WRITE)
+	file.store_line("EXISTING=Value")
+	file.store_line("MISSING_FALLBACK=${NOT_EXIST:-Hello World}")
+	file.store_line("EXIST_FALLBACK=${EXISTING:-Fallback}")
+	file.store_line("ESCAPED_DOLLAR=\\$NOT_EXPANDED")
+	file.close()
+	ENV.config("user://test_fallbacks.env", true)
+	
+	assert_eq(String(ENV.get_env("MISSING_FALLBACK")), "Hello World")
+	assert_eq(String(ENV.get_env("EXIST_FALLBACK")), "Value")
+	assert_eq(String(ENV.get_env("ESCAPED_DOLLAR")), "$NOT_EXPANDED")
 
 func test_save_functionality():
 	ENV.clear()
