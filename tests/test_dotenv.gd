@@ -270,3 +270,42 @@ func test_save_functionality():
 	ENV.config("user://test_save.env", true)
 	assert_eq(String(ENV.get_env("SAVED")), "hello")
 	assert_eq(ENV.get_env_int("NUMBER"), 42)
+
+func test_get_env_color():
+	ENV.clear()
+	ENV.set_env("UI_BG", "#ff0000")
+	ENV.set_env("UI_FG", "0.5,0.5,0.5,1.0")
+	var bg = ENV.get_env_color("UI_BG")
+	var fg = ENV.get_env_color("UI_FG")
+	assert_eq(bg, Color("#ff0000"))
+	assert_eq(fg, Color(0.5, 0.5, 0.5, 1.0))
+	assert_eq(ENV.get_env_color("DEFAULT_COLOR", Color.BLACK), Color.BLACK)
+
+func test_get_env_vectors():
+	ENV.clear()
+	ENV.set_env("VEC2", "1.5, 2.5")
+	ENV.set_env("VEC3", "1,2,3")
+	ENV.set_env("VEC4", "1,2,3,4")
+	assert_eq(ENV.get_env_vector2("VEC2"), Vector2(1.5, 2.5))
+	assert_eq(ENV.get_env_vector3("VEC3"), Vector3(1, 2, 3))
+	assert_eq(ENV.get_env_vector4("VEC4"), Vector4(1, 2, 3, 4))
+	assert_eq(ENV.get_env_vector2("MISSING", Vector2.ONE), Vector2.ONE)
+
+func test_parse_buffer():
+	ENV.clear()
+	var payload = "BUFFER_VAR=100\nBUFFER_STRING=test".to_utf8_buffer()
+	var dict = ENV.parse_buffer(payload)
+	assert_eq(String(dict["BUFFER_VAR"]), "100")
+	assert_eq(String(dict["BUFFER_STRING"]), "test")
+
+func test_bind_env():
+	ENV.clear()
+	var node = Node3D.new()
+	ENV.set_env("SPAWN_MARKER", "Level3_Start")
+	
+	ENV.bind_env(node, {
+		"SPAWN_MARKER": "name"
+	})
+	
+	assert_eq(String(node.name), "Level3_Start")
+	node.free()
