@@ -309,3 +309,46 @@ func test_bind_env():
 	
 	assert_eq(String(node.name), "Level3_Start")
 	node.free()
+
+func test_dynamic_resolver():
+	ENV.clear()
+	var resolver = func(key: String):
+		if key == "VAULT_SECRET":
+			return "DECRYPTED_OK"
+		return null
+	ENV.set_resolver(resolver)
+	assert_eq(str(ENV.get_env("VAULT_SECRET")), "DECRYPTED_OK")
+	assert_eq(str(ENV.get_env("UNKNOWN_KEY", "")), "")
+	ENV.set_resolver(Callable())
+
+func test_get_missing_envs():
+	ENV.clear()
+	ENV.set_env("EXISTING_KEY", "1")
+	var missing = ENV.get_missing_envs(["EXISTING_KEY", "LOST_KEY", "ANOTHER_LOST"])
+	assert_eq(missing.size(), 2)
+	assert_true(missing.has("LOST_KEY"))
+	assert_true(missing.has("ANOTHER_LOST"))
+
+func test_get_envs_matching():
+	ENV.clear()
+	ENV.set_env("API_URL_1", "test1")
+	ENV.set_env("API_URL_2", "test2")
+	ENV.set_env("NO_MATCH", "fail")
+	var matched = ENV.get_envs_matching("^API_URL_\\d+$")
+	assert_eq(matched.size(), 2)
+	assert_eq(String(matched["API_URL_1"]), "test1")
+	assert_eq(String(matched["API_URL_2"]), "test2")
+	assert_false(matched.has("NO_MATCH"))
+
+func test_bool_whitelist():
+	ENV.clear()
+	ENV.set_bool_whitelist(["sim", "yes"], ["nao", "no"])
+	ENV.set_env("VAL_SIM", "sim")
+	ENV.set_env("VAL_NAO", "nao")
+	ENV.set_env("VAL_TRUE", "true")
+	
+	assert_true(ENV.get_env_bool("VAL_SIM"))
+	assert_false(ENV.get_env_bool("VAL_NAO"))
+	assert_false(ENV.get_env_bool("VAL_TRUE"))
+	
+	ENV.set_bool_whitelist(["true", "yes", "1"], ["false", "no", "0"])
