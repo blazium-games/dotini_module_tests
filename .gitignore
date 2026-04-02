@@ -1,0 +1,6 @@
+.godot/
+*.log
+*.txt
+events.out.tfevents.*
+results.json
+test_results_junit.xml

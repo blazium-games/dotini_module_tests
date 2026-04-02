@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://maintestrunner"]
+
+[ext_resource type="Script" path="res://runner.gd" id="1_test"]
+
+[node name="Runner" type="Autowork"]
+script = ExtResource("1_test")
