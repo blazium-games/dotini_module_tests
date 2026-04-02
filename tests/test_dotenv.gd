@@ -197,6 +197,34 @@ func test_generate_example():
 	assert_true(content.contains("PUBLIC_KEY="))
 	assert_false(content.contains("secret"))
 
+func test_multiline_parsing():
+	ENV.clear()
+	var file = FileAccess.open("user://test_multiline.env", FileAccess.WRITE)
+	file.store_string("MULTILINE=\"Line1\nLine2\nLine3\"\n")
+	file.store_line("KEY2=Value2")
+	file.close()
+
+	ENV.config("user://test_multiline.env", true)
+	var multi = String(ENV.get_env("MULTILINE"))
+	assert_eq(multi, "Line1\nLine2\nLine3")
+	assert_eq(String(ENV.get_env("KEY2")), "Value2")
+
+func test_export_json_and_os_sync():
+	ENV.clear()
+	ENV.set_env("EXPORT1", "value1")
+	ENV.export_json("user://test_export.json")
+	var file = FileAccess.open("user://test_export.json", FileAccess.READ)
+	assert_not_null(file)
+	var content = JSON.parse_string(file.get_as_text())
+	file.close()
+	assert_eq(String(content["EXPORT1"]), "value1")
+	
+	ENV.set_env("TEMP_TARGET", "OS_TEST_VAL")
+	ENV.push_to_os_env()
+	var os_val = OS.get_environment("TEMP_TARGET")
+	assert_eq(os_val, "OS_TEST_VAL")
+	OS.unset_environment("TEMP_TARGET")
+
 func test_save_functionality():
 	ENV.clear()
 	ENV.set_env("SAVED", "hello")
