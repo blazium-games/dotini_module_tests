@@ -53,6 +53,42 @@ func test_load_env_file_cascading():
 	assert_eq(String(ENV.get_env("CASCADE_BASE")), "alpha")
 	assert_eq(String(ENV.get_env("CASCADE_OVERLAY")), "beta")
 
+func test_export_key_stripping():
+	ENV.clear()
+	var file = FileAccess.open("user://test_export.env", FileAccess.WRITE)
+	file.store_line("export HOST=127.0.0.1")
+	file.store_line("export PORT=8080")
+	file.close()
+
+	ENV.config("user://test_export.env", true)
+	
+	assert_eq(String(ENV.get_env("HOST")), "127.0.0.1")
+	assert_eq(ENV.get_env_int("PORT"), 8080)
+
+func test_literal_single_quotes():
+	ENV.clear()
+	var file = FileAccess.open("user://test_literal.env", FileAccess.WRITE)
+	file.store_line("VAR1=\"hello\\nworld\"")
+	file.store_line("VAR2='hello\\nworld'")
+	file.store_line("VAR3='$VAR1'")
+	file.close()
+
+	ENV.config("user://test_literal.env", true)
+
+	assert_eq(String(ENV.get_env("VAR1")), "hello\nworld")
+	assert_eq(String(ENV.get_env("VAR2")), "hello\\nworld")
+	assert_eq(String(ENV.get_env("VAR3")), "$VAR1")
+
+func test_has_env_file():
+	ENV.clear()
+	var base_file = FileAccess.open(".env", FileAccess.WRITE)
+	base_file.store_line("A=1")
+	base_file.close()
+	ENV.load_env_file(".env", true)
+	
+	assert_true(ENV.has_env_file(".env"))
+	assert_false(ENV.has_env_file("nonexistent.env"))
+
 func test_type_casting():
 	ENV.set_env("INT_VAR", "123")
 	ENV.set_env("BOOL_VAR", "true")
