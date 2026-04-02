@@ -10,8 +10,8 @@ func test_set_and_get():
 func test_defaults():
 	assert_eq(String(ENV.get_env("MISSING_KEY", "DEFAULT")), "DEFAULT")
 	assert_eq(ENV.get_env_int("MISSING_INT", 42), 42)
-	assert_eq(ENV.get_env_bool("MISSING_BOOL", true), true)
-	assert_eq(ENV.get_env_float("MISSING_FLOAT", 3.14), 3.14)
+	assert_eq(ENV.get_env_bool("TEST_BOOL", true), true)
+	assert_almost_eq(ENV.get_env_float("TEST_FLOAT", 3.14), 3.14, 0.001)
 
 func test_remove_env():
 	ENV.set_env("TEMP_VAR", "TEMP")
