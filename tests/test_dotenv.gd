@@ -159,6 +159,44 @@ func test_structural_types_and_expansion():
 	var missing = ENV.expand_string("Fallback: ${UNKNOWN:-MissingData}")
 	assert_eq(missing, "Fallback: MissingData")
 
+func test_os_priority_and_groups():
+	ENV.clear()
+	var file = FileAccess.open("user://test_ops.env", FileAccess.WRITE)
+	file.store_line("APP_NAME=Blazium")
+	file.store_line("APP_PORT=8080")
+	file.store_line("SECRET=123")
+	file.close()
+
+	OS.set_environment("APP_PORT", "9000")
+	ENV.config("user://test_ops.env", true)
+
+	assert_eq(String(ENV.get_env("APP_PORT")), "9000")
+
+	ENV.set_prioritize_os_env(false)
+	assert_eq(String(ENV.get_env("APP_PORT")), "8080")
+	
+	ENV.set_prioritize_os_env(true)
+	OS.unset_environment("APP_PORT")
+
+	var group = ENV.get_env_group("APP_")
+	assert_eq(group.size(), 2)
+	assert_eq(String(group["APP_NAME"]), "Blazium")
+
+func test_generate_example():
+	ENV.clear()
+	ENV.set_env("PRIVATE_KEY", "secret")
+	ENV.set_env("PUBLIC_KEY", "open")
+	ENV.generate_example("user://test_example.env")
+
+	var file = FileAccess.open("user://test_example.env", FileAccess.READ)
+	assert_not_null(file)
+	var content = file.get_as_text()
+	file.close()
+
+	assert_true(content.contains("PRIVATE_KEY="))
+	assert_true(content.contains("PUBLIC_KEY="))
+	assert_false(content.contains("secret"))
+
 func test_save_functionality():
 	ENV.clear()
 	ENV.set_env("SAVED", "hello")
