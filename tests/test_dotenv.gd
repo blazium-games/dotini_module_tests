@@ -133,6 +133,32 @@ func test_advanced_interpolation_fallbacks():
 	assert_eq(String(ENV.get_env("EXIST_FALLBACK")), "Value")
 	assert_eq(String(ENV.get_env("ESCAPED_DOLLAR")), "$NOT_EXPANDED")
 
+func test_structural_types_and_expansion():
+	ENV.clear()
+	var file = FileAccess.open("user://test_structs.env", FileAccess.WRITE)
+	file.store_line("LIST=a, b, c")
+	file.store_line("MAP={\"key\":\"value\"}")
+	file.store_line("VERSION=1.0.0")
+	file.close()
+
+	ENV.config("user://test_structs.env", true)
+
+	var arr = ENV.get_env_array("LIST")
+	assert_eq(arr.size(), 3)
+	assert_eq(arr[0], "a")
+	assert_eq(arr[1], "b")
+	assert_eq(arr[2], "c")
+
+	var dict = ENV.get_env_dict("MAP")
+	assert_true(dict.has("key"))
+	assert_eq(String(dict["key"]), "value")
+
+	var expanded = ENV.expand_string("Blazium ${VERSION:-0.0.0} deployed to $LIST")
+	assert_eq(expanded, "Blazium 1.0.0 deployed to a, b, c")
+    
+	var missing = ENV.expand_string("Fallback: ${UNKNOWN:-MissingData}")
+	assert_eq(missing, "Fallback: MissingData")
+
 func test_save_functionality():
 	ENV.clear()
 	ENV.set_env("SAVED", "hello")
