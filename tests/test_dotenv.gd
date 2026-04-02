@@ -225,6 +225,39 @@ func test_export_json_and_os_sync():
 	assert_eq(os_val, "OS_TEST_VAL")
 	OS.unset_environment("TEMP_TARGET")
 
+func test_auto_config_precedence():
+	ENV.clear()
+	var f1 = FileAccess.open("user://.env", FileAccess.WRITE)
+	f1.store_line("APP_NAME=Base")
+	f1.store_line("APP_PORT=8080")
+	f1.close()
+
+	var f2 = FileAccess.open("user://.env.local", FileAccess.WRITE)
+	f2.store_line("APP_PORT=9090")
+	f2.close()
+
+	var f3 = FileAccess.open("user://.env.production", FileAccess.WRITE)
+	f3.store_line("APP_URL=prod.blazium.app")
+	f3.store_line("APP_NAME=ProdBase")
+	f3.close()
+
+	ENV.auto_config("user://", "production")
+
+	# .env.production should override .env
+	assert_eq(String(ENV.get_env("APP_NAME")), "ProdBase")
+	# .env.local overrides .env
+	assert_eq(String(ENV.get_env("APP_PORT")), "9090")
+	# Brought from .env.production
+	assert_eq(String(ENV.get_env("APP_URL")), "prod.blazium.app")
+
+func test_require_envs():
+	ENV.clear()
+	ENV.set_env("REQ1", "val1")
+	ENV.set_env("REQ2", "val2")
+
+	assert_true(ENV.require_envs(["REQ1", "REQ2"]))
+	assert_false(ENV.require_envs(["REQ1", "MISSING_KEY"]))
+
 func test_save_functionality():
 	ENV.clear()
 	ENV.set_env("SAVED", "hello")
