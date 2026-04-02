@@ -39,6 +39,20 @@ func test_get_all_and_files():
 	assert_true(file_envs.has("A"))
 	assert_false(file_envs.has("G_VAR"))
 
+func test_load_env_file_cascading():
+	ENV.clear()
+	var base_file = FileAccess.open(".env", FileAccess.WRITE)
+	base_file.store_line("CASCADE_BASE=alpha")
+	base_file.close()
+	
+	var overlay = FileAccess.open(".env.local", FileAccess.WRITE)
+	overlay.store_line("CASCADE_OVERLAY=beta")
+	overlay.close()
+
+	ENV.load_env_file(".env.local")
+	assert_eq(String(ENV.get_env("CASCADE_BASE")), "alpha")
+	assert_eq(String(ENV.get_env("CASCADE_OVERLAY")), "beta")
+
 func test_type_casting():
 	ENV.set_env("INT_VAR", "123")
 	ENV.set_env("BOOL_VAR", "true")
