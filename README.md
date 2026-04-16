@@ -1,5 +1,14 @@
-# dotenv_module_tests
-Automated test suite configured for headless validations of the `dotenv` Godot Engine C++ module. 
-Driven by the `Autowork` test orchestrator under the hood.
+# Dotini Module Tests
 
-This contains the test suite covering parsing, variable expansion, type coercions, and read/write saving mechanics native to the `ENV` singleton.
+A test suite and example project for the **Dotini** module built for the Blazium Engine.
+
+## Features
+- Fully integrated with the native C++ **Autowork** testing framework.
+- Executes tests in headless mode.
+
+## Running Tests
+To run the test suite natively:
+
+```bash
+blazium --headless -s run_tests.gd
+```
