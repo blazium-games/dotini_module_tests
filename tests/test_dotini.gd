@@ -1,4 +1,4 @@
-extends GutTest
+extends AutoworkTest
 
 func test_basic_parsing_and_types():
 	var ini = DotIniFile.new()
